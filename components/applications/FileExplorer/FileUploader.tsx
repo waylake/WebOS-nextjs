@@ -5,7 +5,7 @@ interface FileUploaderProps {
   onUpload: (files: File[]) => void;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ onUpload }) => {
   const onDrop = (acceptedFiles: File[]) => {
     onUpload(acceptedFiles);
   };
@@ -15,18 +15,16 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload }) => {
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed p-4 rounded-lg cursor-pointer ${
+      className={`border-2 border-dashed p-4 mb-4 ${
         isDragActive ? "border-blue-500" : "border-gray-300"
       }`}
     >
       <input {...getInputProps()} />
-      {isDragActive ? (
-        <p className="text-center">Drop the files here...</p>
-      ) : (
-        <p className="text-center">
-          Drag 'n' drop some files here, or click to select files
-        </p>
-      )}
+      <p className="text-center text-gray-500 dark:text-gray-400">
+        {isDragActive
+          ? "Drop the files here"
+          : "Drag &apos;n&apos; drop some files here, or click to select files"}
+      </p>
     </div>
   );
 };

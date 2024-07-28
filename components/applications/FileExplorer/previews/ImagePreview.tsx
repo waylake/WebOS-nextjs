@@ -1,5 +1,6 @@
 import React from "react";
-import { FileSystemItem } from "../../../../lib/fileSystem";
+import Image from "next/image";
+import { FileSystemItem } from "@/lib/fileSystem";
 
 interface ImagePreviewProps {
   file: FileSystemItem;
@@ -7,11 +8,15 @@ interface ImagePreviewProps {
 
 const ImagePreview: React.FC<ImagePreviewProps> = ({ file }) => {
   return (
-    <div className="flex justify-center items-center">
-      <img
-        src={file.content}
+    <div className="w-full h-full flex justify-center items-center">
+      <Image
+        src={URL.createObjectURL(
+          new Blob([file.content || ""], { type: "image/png" }),
+        )}
         alt={file.name}
-        className="max-w-full max-h-[75vh] object-contain"
+        width={800}
+        height={600}
+        className="max-w-full h-auto"
       />
     </div>
   );

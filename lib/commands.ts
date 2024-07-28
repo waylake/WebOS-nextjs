@@ -1,4 +1,9 @@
-import { getFileSystem, saveFileSystem } from "./fileSystem";
+import {
+  getFileSystem,
+  saveFileSystem,
+  FileSystem,
+  FileSystemItem,
+} from "./fileSystem";
 
 export type CommandHandler = (
   args: string[],
@@ -33,6 +38,11 @@ export const ls: CommandHandler = async (
   setOutput,
   currentDir,
 ) => {
+  if (!currentDir) {
+    setOutput((prev) => [...prev, "Error: Current directory is not set."]);
+    return;
+  }
+
   const fileSystem = await getFileSystem();
   const items =
     Object.values(fileSystem)
@@ -48,6 +58,11 @@ export const mkdir: CommandHandler = async (
   setOutput,
   currentDir,
 ) => {
+  if (!currentDir) {
+    setOutput((prev) => [...prev, "Error: Current directory is not set."]);
+    return;
+  }
+
   if (args.length !== 1) {
     setOutput((prev) => [...prev, "Usage: mkdir <directory-name>"]);
     return;
@@ -76,6 +91,11 @@ export const rmdir: CommandHandler = async (
   setOutput,
   currentDir,
 ) => {
+  if (!currentDir) {
+    setOutput((prev) => [...prev, "Error: Current directory is not set."]);
+    return;
+  }
+
   if (args.length !== 1) {
     setOutput((prev) => [...prev, "Usage: rmdir <directory-name>"]);
     return;
@@ -101,6 +121,11 @@ export const touch: CommandHandler = async (
   setOutput,
   currentDir,
 ) => {
+  if (!currentDir) {
+    setOutput((prev) => [...prev, "Error: Current directory is not set."]);
+    return;
+  }
+
   if (args.length !== 1) {
     setOutput((prev) => [...prev, "Usage: touch <file-name>"]);
     return;
@@ -129,6 +154,11 @@ export const rm: CommandHandler = async (
   setOutput,
   currentDir,
 ) => {
+  if (!currentDir) {
+    setOutput((prev) => [...prev, "Error: Current directory is not set."]);
+    return;
+  }
+
   if (args.length !== 1) {
     setOutput((prev) => [...prev, "Usage: rm <file-name>"]);
     return;
@@ -155,6 +185,11 @@ export const cd: CommandHandler = async (
   currentDir,
   setCurrentDir,
 ) => {
+  if (!currentDir || !setCurrentDir) {
+    setOutput((prev) => [...prev, "Error: Current directory is not set."]);
+    return;
+  }
+
   if (args.length !== 1) {
     setOutput((prev) => [...prev, "Usage: cd <directory-name>"]);
     return;
@@ -166,7 +201,7 @@ export const cd: CommandHandler = async (
     setOutput((prev) => [...prev, `No such directory: ${dirName}`]);
     return;
   }
-  setCurrentDir?.(newDirId);
+  setCurrentDir(newDirId);
   setOutput((prev) => [...prev, `Current directory: ${newDirId}`]);
 };
 

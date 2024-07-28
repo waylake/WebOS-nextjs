@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export const useDraggableResizable = (
   initialPosition: { x: number; y: number },
@@ -9,7 +9,7 @@ export const useDraggableResizable = (
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
-  const handleMouseDown = useCallback((event: MouseEvent) => {
+  const handleMouseDown: React.MouseEventHandler<HTMLDivElement> = (event) => {
     event.preventDefault();
     if ((event.target as HTMLElement).classList.contains("drag-handle")) {
       setIsDragging(true);
@@ -18,7 +18,7 @@ export const useDraggableResizable = (
     ) {
       setIsResizing(true);
     }
-  }, []);
+  };
 
   const handleMouseMove = useCallback(
     (event: MouseEvent) => {
