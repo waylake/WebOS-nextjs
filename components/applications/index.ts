@@ -1,3 +1,5 @@
 export * from "./Terminal";
 export * from "./TextEditor";
-export * from "./FileExplorer";
+export { FileExplorer } from "./FileExplorer/FileExplorer";
+export { Terminal } from "./Terminal";
+export { TextEditor } from "./TextEditor";

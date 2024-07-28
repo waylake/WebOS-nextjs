@@ -1,6 +1,4 @@
-"use client";
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { useTheme } from "./ThemeProvider";
 import NotificationCenter from "./NotificationCenter";
@@ -8,6 +6,19 @@ import { Sun, Moon } from "lucide-react";
 
 const MenuBar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  const [currentTime, setCurrentTime] = useState<string>("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString());
+    };
+
+    updateTime();
+    const intervalId = setInterval(updateTime, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <div className="bg-gray-800 dark:bg-gray-900 text-white h-8 flex items-center px-4 justify-between">
@@ -34,7 +45,7 @@ const MenuBar: React.FC = () => {
           {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
         </Button>
         <NotificationCenter />
-        <span>{new Date().toLocaleTimeString()}</span>
+        <span>{currentTime}</span>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { getItem, setItem } from "@/lib/indexedDB";
 
 type Theme = "light" | "dark";
 
@@ -18,17 +17,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    getItem<{ value: Theme }>("settings", "theme").then((savedTheme) => {
-      if (savedTheme && savedTheme.value) {
-        setTheme(savedTheme.value);
-      }
-    });
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme as Theme);
+    }
   }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    setItem("settings", "theme", { key: "theme", value: newTheme });
+    localStorage.setItem("theme", newTheme);
   };
 
   useEffect(() => {

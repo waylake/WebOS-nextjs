@@ -1,89 +1,110 @@
+import { v4 as uuidv4 } from "uuid";
+import { useState, useEffect } from "react";
+
 export type FileSystemItem = {
+  id: string;
   name: string;
   type: "file" | "directory";
-  content?: string;
-  children?: FileSystemItem[];
+  content?: string; // Base64 or Data URL
+  children?: string[]; // Store only IDs of children
 };
 
-export type FileSystem = FileSystemItem[];
+export type FileSystem = { [id: string]: FileSystemItem };
 
-const initialFileSystem: FileSystem = [
-  {
+const initialFileSystem: FileSystem = {
+  root: {
+    id: "root",
+    name: "Root",
+    type: "directory",
+    children: ["documents", "pictures"],
+  },
+  documents: {
+    id: "root/documents",
     name: "Documents",
     type: "directory",
-    children: [
-      { name: "resume.txt", type: "file", content: "My professional resume" },
-      { name: "project.txt", type: "file", content: "Project ideas" },
-    ],
+    children: [],
   },
-  {
+  pictures: {
+    id: "root/pictures",
     name: "Pictures",
     type: "directory",
-    children: [
-      { name: "vacation.jpg", type: "file", content: "Binary content" },
-      { name: "profile.png", type: "file", content: "Binary content" },
-    ],
+    children: [],
   },
-  { name: "notes.txt", type: "file", content: "Important notes" },
-];
-
-export const getFileSystem = (): FileSystem => {
-  // In a real application, you might load this from localStorage or an API
-  return initialFileSystem;
 };
 
-export const saveFileSystem = (fileSystem: FileSystem) => {
-  // In a real application, you might save this to localStorage or an API
-  console.log("Saving file system:", fileSystem);
-};
-
-export const createFile = (
-  path: string[],
-  name: string,
-  content: string = "",
-) => {
-  const fileSystem = getFileSystem();
-  let currentDir = fileSystem;
-
-  for (const dir of path) {
-    const nextDir = currentDir.find(
-      (item) => item.type === "directory" && item.name === dir,
-    );
-    if (nextDir && nextDir.type === "directory") {
-      currentDir = nextDir.children || [];
-    } else {
-      throw new Error(`Directory not found: ${dir}`);
-    }
+export const getFileSystem = async (): Promise<FileSystem> => {
+  const savedFileSystem = localStorage.getItem("fileSystem");
+  if (savedFileSystem) {
+    return JSON.parse(savedFileSystem);
+  } else {
+    return initialFileSystem;
   }
-
-  currentDir.push({ name, type: "file", content });
-  saveFileSystem(fileSystem);
 };
 
-export const readFile = (path: string[]): string => {
-  const fileSystem = getFileSystem();
-  let current: FileSystemItem | undefined = {
-    type: "directory",
-    name: "root",
-    children: fileSystem,
+export const saveFileSystem = async (fileSystem: FileSystem) => {
+  localStorage.setItem("fileSystem", JSON.stringify(fileSystem));
+};
+
+export const addFile = async (file: File): Promise<FileSystemItem> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      const newFile: FileSystemItem = {
+        id: uuidv4(),
+        name: file.name,
+        type: "file",
+        content,
+      };
+      const currentFileSystem = await getFileSystem();
+      currentFileSystem[newFile.id] = newFile;
+
+      if (currentFileSystem.root.children) {
+        currentFileSystem.root.children.push(newFile.id);
+      } else {
+        currentFileSystem.root.children = [newFile.id];
+      }
+
+      await saveFileSystem(currentFileSystem);
+      resolve(newFile);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+export const useFileSystem = () => {
+  const [fileSystem, setFileSystem] = useState<FileSystem>({});
+
+  useEffect(() => {
+    getFileSystem().then(setFileSystem);
+  }, []);
+
+  const updateFileSystem = async (newFileSystem: FileSystem) => {
+    setFileSystem(newFileSystem);
+    await saveFileSystem(newFileSystem);
   };
 
-  for (const name of path) {
-    if (current.type === "directory") {
-      current = current.children?.find((item) => item.name === name);
-    } else {
-      throw new Error(`${current.name} is not a directory`);
-    }
-    if (!current) {
-      throw new Error(`Item not found: ${name}`);
-    }
-  }
-
-  if (current.type === "file") {
-    return current.content || "";
-  } else {
-    throw new Error(`${current.name} is not a file`);
-  }
+  return { fileSystem, updateFileSystem };
 };
 
-// Add more functions as needed for your file system operations
+export const getFileHandle = async (
+  fileName: string,
+): Promise<FileSystemItem | null> => {
+  const fileSystem = await getFileSystem();
+  return fileSystem[fileName] || null;
+};
+
+export const readFileContent = async (
+  fileHandle: FileSystemItem,
+): Promise<string> => {
+  return fileHandle.content || "";
+};
+
+export const saveFileHandle = async (
+  fileHandle: FileSystemItem,
+): Promise<void> => {
+  const currentFileSystem = await getFileSystem();
+  currentFileSystem[fileHandle.id] = fileHandle;
+  await saveFileSystem(currentFileSystem);
+};

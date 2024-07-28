@@ -1,9 +1,10 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
-import { getItem, setItem } from "@/lib/indexedDB";
 import MenuBar from "./MenuBar";
 import Dock from "./Dock";
 import DraggableWindow from "./DraggableWindow";
+import { getFileHandle, readFileContent } from "@/lib/fileSystem";
 
 type Window = {
   id: number;
@@ -19,13 +20,14 @@ const Desktop: React.FC = () => {
   const [wallpaper, setWallpaper] = useState<string>("");
 
   useEffect(() => {
-    getItem<{ value: string }>("settings", "wallpaper").then(
-      (savedWallpaper) => {
-        if (savedWallpaper && savedWallpaper.value) {
-          setWallpaper(savedWallpaper.value);
-        }
-      },
-    );
+    const loadWallpaper = async () => {
+      const handle = await getFileHandle("wallpaper");
+      if (handle) {
+        const content = await readFileContent(handle);
+        setWallpaper(content);
+      }
+    };
+    loadWallpaper();
   }, []);
 
   const openWindow = (title: string, component: React.ReactNode) => {
@@ -44,11 +46,6 @@ const Desktop: React.FC = () => {
 
   const closeWindow = (id: number) => {
     setWindows((prev) => prev.filter((window) => window.id !== id));
-  };
-
-  const updateWallpaper = (newWallpaper: string) => {
-    setWallpaper(newWallpaper);
-    setItem("settings", "wallpaper", { key: "wallpaper", value: newWallpaper });
   };
 
   return (
